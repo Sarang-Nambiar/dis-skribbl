@@ -5,3 +5,10 @@ body {
   color: black;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Black keyline around the rainbow wordmark. `paint-order` keeps the stroke
+   behind the fill so the letters don't get thinned out by it. */
+.title-outline {
+  -webkit-text-stroke: 3px black;
+  paint-order: stroke fill;
+}

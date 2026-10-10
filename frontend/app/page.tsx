@@ -1,8 +1,11 @@
+import LoginCard from "@/components/LoginCard";
+import Title from "@/components/Title";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center text-9xl font-sans pt-6">
-      Scribble
-    </div>
+    <main className="flex flex-1 flex-col items-center justify-center gap-8 p-6">
+      <Title />
+      <LoginCard />
+    </main>
   );
 }
