@@ -1,2 +1,2 @@
 # dis-skribbl
-A skribbl.io clone
+This is the monorepo of skribbl clone. 

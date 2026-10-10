@@ -22,6 +22,10 @@ export default function LoginCard() {
         Pick a name and a look, then jump in.
       </p>
 
+      <div className="mt-5 flex justify-center">
+        <Avatar />
+      </div>
+
       <input
         type="text"
         value={name}
@@ -31,10 +35,6 @@ export default function LoginCard() {
         aria-label="Player name"
         className="mt-5 w-full rounded-lg border-2 border-black/15 px-3 py-2 text-center outline-none focus:border-black/40"
       />
-
-      <div className="mt-5 flex justify-center">
-        <Avatar />
-      </div>
 
       <button
         type="button"
