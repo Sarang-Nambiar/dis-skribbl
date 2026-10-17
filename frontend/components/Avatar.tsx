@@ -35,8 +35,16 @@
  *  once you introduce state.
  */
 
-export const CELL = 48;
+import { IconButton } from "@mui/material";
+import { useState } from "react";
+
 export const COLUMNS = 10;
+
+export const SPRITE_URLS = {
+  color: '/color_atlas.gif',
+  eyes: '/eyes_atlas.gif',
+  mouth: '/mouth_atlas.gif'
+} as const;
 
 export const SPRITE_COUNTS = {
   color: 28,
@@ -44,12 +52,84 @@ export const SPRITE_COUNTS = {
   mouth: 51,
 } as const;
 
+// in pixels
+export const SPRITE_WIDTH = 48;
+export const SPRITE_HEIGHT = 48;
+
+const SCALE = 3
+
+function calcCoords(idx: number, total: number): string {
+  var x: number = 0;
+  var y: number = 0;
+
+  // sanitize the index
+  var sanitizedIdx: number = idx % total;
+
+  x = sanitizedIdx % 10;
+  y = Math.trunc(sanitizedIdx / 10);
+  return `${-x * SPRITE_WIDTH}px ${-y * SPRITE_HEIGHT}px`;
+}
+
 export default function Avatar() {
+  const [avatarIdx, setAvatarIdx] = useState(0);
+  const [mouthIdx, setMouthIdx] = useState(0);
+  const [eyesIdx, setEyesIdx] = useState(0);
+
   return (
-    <div className="flex size-24 items-center justify-center rounded-lg border-2 border-dashed border-black/30 bg-black/5 text-center text-xs leading-tight text-black/50">
-      avatar
-      <br />
-      goes here
-    </div>
+    <div className="flex gap-2 h-32 w-64 items-center justify-center rounded-lg text-center text-xs leading-tight text-black/50">
+      <div className="flex flex-col">
+        <IconButton onClick={() => setAvatarIdx(avatarIdx - 1)}>
+          <div className="w-4 h-4 bg-[url('/arrow.gif')] bg-position-[-16px_0px] bg-no-repeat"></div>
+        </IconButton>
+
+        <IconButton onClick={() => setEyesIdx(eyesIdx - 1)}>
+          <div className="w-4 h-4 bg-[url('/arrow.gif')] bg-position-[-16px_0px] bg-no-repeat"></div>
+        </IconButton>
+
+        <IconButton onClick={() => setMouthIdx(mouthIdx - 1)}>
+          <div className="w-4 h-4 bg-[url('/arrow.gif')] bg-position-[-16px_0px] bg-no-repeat"></div>
+        </IconButton>
+      </div>
+      <div
+        className="relative shrink-0"
+        style={{ width: SPRITE_WIDTH * SCALE, height: SPRITE_HEIGHT * SCALE }}
+      >
+        <div
+          className="absolute left-0 top-0 origin-top-left"
+          style={{
+            width: SPRITE_WIDTH,
+            height: SPRITE_HEIGHT,
+            transform: `scale(${SCALE})`,
+            imageRendering: "pixelated",
+          }}
+        >
+          <div className="absolute inset-0 bg-no-repeat" style={{
+            backgroundImage: `url(${SPRITE_URLS.color})`,
+            backgroundPosition: calcCoords(avatarIdx, SPRITE_COUNTS.color),
+          }} />
+          <div className="absolute inset-0 bg-no-repeat" style={{
+            backgroundImage: `url(${SPRITE_URLS.mouth})`,
+            backgroundPosition: calcCoords(mouthIdx, SPRITE_COUNTS.mouth),
+          }} />
+          <div className="absolute inset-0 bg-no-repeat" style={{
+            backgroundImage: `url(${SPRITE_URLS.eyes})`,
+            backgroundPosition: calcCoords(eyesIdx, SPRITE_COUNTS.eyes),
+          }} />
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <IconButton onClick={() => setAvatarIdx(avatarIdx + 1)}>
+          <div className="w-4 h-4 bg-[url('/arrow.gif')] bg-position-[-16px_-16px] bg-no-repeat"></div>
+        </IconButton>
+
+        <IconButton onClick={() => setEyesIdx(eyesIdx + 1)}>
+          <div className="w-4 h-4 bg-[url('/arrow.gif')] bg-position-[-16px_-16px] bg-no-repeat"></div>
+        </IconButton>
+
+        <IconButton onClick={() => setMouthIdx(mouthIdx + 1)}>
+          <div className="w-4 h-4 bg-[url('/arrow.gif')] bg-position-[-16px_-16px] bg-no-repeat"></div>
+        </IconButton>
+      </div>
+    </div >
   );
 }
