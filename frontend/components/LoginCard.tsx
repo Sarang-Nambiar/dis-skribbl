@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import Avatar from "@/components/Avatar";
+import axios from "axios";
 
 const MAX_NAME_LENGTH = 16;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function LoginCard() {
   const [name, setName] = useState("");
@@ -13,6 +15,19 @@ export default function LoginCard() {
 
   function handlePlay() {
     // TODO: hand the player off to the game — needs the backend first.
+    axios.post(BACKEND_URL + "/play", {})
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((err) => {
+        if (err.response) {
+          console.log(err.response.status); // e.g., 404, 500
+          console.log(err.response.data);   // Server error payload
+        } else if (err.request) {
+          console.log('No response received'); // Network error
+        }
+        console.error(err);
+      })
   }
 
   return (

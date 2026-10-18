@@ -1,10 +1,13 @@
 package http
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 // Two api endpoints
@@ -16,18 +19,55 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func serverWelcome(w http.ResponseWriter, r *http.Request) {
-	log.Println("Hello World!")
+	msg := "Hello World!"
+	log.Println(msg)
+	fmt.Fprintln(w, msg)
 }
 
-func CreateRouter() (*mux.Router, error) {
+func handlePlay(w http.ResponseWriter, r *http.Request) {
+	log.Println("The games have begun!")
+}
+
+func CreateRouter() (http.Handler, error) {
 	router := mux.NewRouter()
 
 	router.Use(loggingMiddleware)
 
-	router.HandleFunc("/", serverWelcome).Methods("GET")
+	router.HandleFunc("/", serverWelcome)
 	router.HandleFunc("/health", healthCheck).Methods("GET")
+	router.HandleFunc("/play", handlePlay).Methods("POST")
 
-	return router, nil
+	return CORSMiddleware(router), nil
+}
+
+func CORSMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if err := godotenv.Load(); err != nil {
+			log.Printf("Could not load .env file: %v", err)
+			return
+		}
+
+		frontend_addr := os.Getenv("FRONTEND_URL")
+		if frontend_addr == "" {
+			fmt.Printf("Frontend URL was not fetched from the .env file.\n")
+			return
+		}
+
+		fmt.Printf("Frontend url fetched: %s\n", frontend_addr)
+
+		w.Header().Set("Access-Control-Allow-Origin", frontend_addr)
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			// Handling preflight requests
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // Helps log the requests coming into the server
