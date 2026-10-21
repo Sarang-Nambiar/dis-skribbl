@@ -36,7 +36,16 @@
  */
 
 import { IconButton } from "@mui/material";
-import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+
+type AvatarProps = {
+  avatarIdx: number;
+  mouthIdx: number;
+  eyesIdx: number;
+  setAvatarIdx: Dispatch<SetStateAction<number>>;
+  setEyesIdx: Dispatch<SetStateAction<number>>;
+  setMouthIdx: Dispatch<SetStateAction<number>>;
+};
 
 export const COLUMNS = 10;
 
@@ -70,10 +79,9 @@ function calcCoords(idx: number, total: number): string {
   return `${-x * SPRITE_WIDTH}px ${-y * SPRITE_HEIGHT}px`;
 }
 
-export default function Avatar() {
-  const [avatarIdx, setAvatarIdx] = useState(0);
-  const [mouthIdx, setMouthIdx] = useState(0);
-  const [eyesIdx, setEyesIdx] = useState(0);
+export default function Avatar({
+  avatarIdx, mouthIdx, eyesIdx, setAvatarIdx, setEyesIdx, setMouthIdx,
+}: AvatarProps) {
 
   return (
     <div className="flex gap-2 h-32 w-64 items-center justify-center rounded-lg text-center text-xs leading-tight text-black/50">

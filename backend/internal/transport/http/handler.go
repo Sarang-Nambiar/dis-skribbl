@@ -1,6 +1,8 @@
 package http
 
 import (
+	"dis-skribbl-backend/internal/user"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,6 +27,15 @@ func serverWelcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePlay(w http.ResponseWriter, r *http.Request) {
+	var u user.User
+	err := json.NewDecoder(r.Body).Decode(&u)
+
+	if err != nil {
+		log.Printf("Something went wrong when decoding the JSON payload: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("This is the User %v", u)
 	log.Println("The games have begun!")
 }
 
@@ -54,7 +65,8 @@ func CORSMiddleware(handler http.Handler) http.Handler {
 			return
 		}
 
-		fmt.Printf("Frontend url fetched: %s\n", frontend_addr)
+		// fmt.Printf("Frontend url fetched: %s\n", frontend_addr)
+		fmt.Println("Inside the CORS middleware.")
 
 		w.Header().Set("Access-Control-Allow-Origin", frontend_addr)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")

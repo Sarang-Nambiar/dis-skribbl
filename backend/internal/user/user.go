@@ -2,13 +2,13 @@ package user
 
 // Frontend avatar info
 type AvatarInfo struct {
-	colorIdx int
-	eyesIdx  int
-	mouthIdx int
+	ColorIdx int `json:"colorIdx"`
+	EyesIdx  int `json:"eyesIdx"`
+	MouthIdx int `json:"mouthIdx"`
 }
 
 type User struct {
-	name       string
-	score      int
-	avatarInfo AvatarInfo
+	Name   string `json:"name"`
+	Score  int
+	Avatar AvatarInfo `json:"avatar"`
 }
