@@ -10,6 +10,10 @@ import { createPrivateRoom } from "@/lib/api";
 const MAX_NAME_LENGTH = 16;
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+interface PlayerToken {
+	id: string
+}
+
 export default function LoginCard() {
 	const router = useRouter();
 	const [name, setName] = useState("");
@@ -35,7 +39,8 @@ export default function LoginCard() {
 				//handle websocket connection
 				const ws = new WebSocket(`ws://${BACKEND_URL}/ws`);
 				ws.onopen = () => {
-					ws.send("Hellow server!");
+					const payload: PlayerToken = { id: response.data.id }
+					ws.send(JSON.stringify({ type: "Join", payload: payload }));
 				};
 				ws.onmessage = (event) => {
 					console.log("Received a message from the server: " + event.data);

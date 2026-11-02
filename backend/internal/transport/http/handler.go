@@ -1,7 +1,8 @@
 package http
 
 import (
-	"dis-skribbl-backend/internal/user"
+	"dis-skribbl-backend/internal/player"
+	"dis-skribbl-backend/internal/room"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,15 +10,18 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
 
-// Two api endpoints
-// one for creating a new user when the user logs in from the site
-// one for getting the commands from the scribble board, what to update on the rest of the user's screens.
+type Server struct {
+	rooms *room.Manager
+}
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
-	log.Println("Server is healthy!")
+	msg := "Server is healthy!"
+	log.Println(msg)
+	fmt.Fprintln(w, msg)
 }
 
 func serverWelcome(w http.ResponseWriter, r *http.Request) {
@@ -26,27 +30,112 @@ func serverWelcome(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, msg)
 }
 
-func handlePlay(w http.ResponseWriter, r *http.Request) {
-	var u user.User
-	err := json.NewDecoder(r.Body).Decode(&u)
+func (s *Server) handlePlay(w http.ResponseWriter, r *http.Request) {
+	// TODO: Implement room checking logic to see if one exists and they were already a part of it?
+
+	roomID := s.rooms.CreateRoom()
+
+	log.Printf("Room ID Created: %s", roomID)
+
+	// Creating unique token for player
+	playerID := s.rooms.CreatePlayerID(roomID)
+	newPlayer, err := player.CreatePlayer(playerID, r.Body)
 
 	if err != nil {
-		log.Printf("Something went wrong when decoding the JSON payload: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("Something went wrong when decoding the JSON payload: %v, error: %v", r.Body, err)
+		http.Error(w, fmt.Sprintf("Something went wrong when decoding the JSON payload: %v", err), http.StatusBadRequest)
 		return
 	}
-	log.Printf("This is the User %v", u)
+
+	// Add new player to the rooms
+	s.rooms.AddPlayer(roomID, newPlayer)
+
 	log.Println("The games have begun!")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(PlayerToken{ID: playerID}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
+}
+
+// TODO: Implement websocket logic here
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // Allow all origins for development
+	},
+}
+
+func (s *Server) serveWs(w http.ResponseWriter, r *http.Request) {
+
+	// Upgrade the connection from http to websocket
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade connection: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	log.Printf("Client connected: %s", conn.RemoteAddr())
+
+	for {
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err,
+				websocket.CloseGoingAway,
+				websocket.CloseAbnormalClosure) {
+				log.Printf("Unexpected close error: %v", err)
+			}
+			break
+		}
+
+		if messageType != websocket.TextMessage {
+			continue // ignore binary data
+		}
+
+		var msg Message
+		if err := json.Unmarshal(message, &msg); err != nil {
+			log.Printf("Bad message from %s: %v", conn.RemoteAddr(), err)
+			conn.WriteJSON(map[string]string{"error": "invalid message"})
+			continue
+		}
+
+		switch msg.Type {
+		case "Join":
+			//TODO: Replace below code with correct join code.
+			// Currently testing if it works
+			var playerToken PlayerToken
+			if err := json.Unmarshal(msg.Payload, &playerToken); err != nil {
+				log.Printf("Bad Payload from %s: %v", conn.RemoteAddr(), err)
+				conn.WriteJSON(map[string]string{"error": "invalid payload"})
+				continue
+			}
+			log.Printf("Player ID %s has been received from the frontend", playerToken.ID.String())
+		default:
+			log.Printf("Invalid message type sent: %s", msg.Type)
+		}
+
+		if err := conn.WriteMessage(messageType, message); err != nil {
+			log.Printf("Write error: %v", err)
+			break
+		}
+	}
+
+	log.Printf("Client disconnected: %s", conn.RemoteAddr())
 }
 
 func CreateRouter() (http.Handler, error) {
 	router := mux.NewRouter()
+	s := &Server{rooms: room.NewManager()}
 
 	router.Use(loggingMiddleware)
 
 	router.HandleFunc("/", serverWelcome)
 	router.HandleFunc("/health", healthCheck).Methods("GET")
-	router.HandleFunc("/play", handlePlay).Methods("POST")
+	router.HandleFunc("/play", s.handlePlay).Methods("POST")
+	router.HandleFunc("/ws", s.serveWs)
 
 	return CORSMiddleware(router), nil
 }
