@@ -1,18 +1,23 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import Avatar from "@/components/Avatar";
 import axios from "axios";
+import { createPrivateRoom } from "@/lib/api";
 
 const MAX_NAME_LENGTH = 16;
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function LoginCard() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [avatarIdx, setAvatarIdx] = useState(0);
   const [mouthIdx, setMouthIdx] = useState(0);
   const [eyesIdx, setEyesIdx] = useState(0);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const canPlay = name.trim().length > 0;
 
@@ -43,6 +48,18 @@ export default function LoginCard() {
         }
         console.error(err);
       })
+  }
+
+  async function handleCreatePrivateRoom() {
+    setCreating(true);
+    setError(null);
+    try {
+      const { roomId } = await createPrivateRoom({ name: name.trim() });
+      router.push(`/room/${roomId}`);
+    } catch {
+      setError("Couldn't create a room. Please try again.");
+      setCreating(false);
+    }
   }
 
   return (
@@ -83,6 +100,23 @@ export default function LoginCard() {
           Play!
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={handleCreatePrivateRoom}
+        disabled={!canPlay || creating}
+        className="mt-3 w-full rounded-lg bg-blue-500 py-2.5 text-lg font-bold text-white shadow transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-500/40 disabled:shadow-none"
+      >
+        {creating ? "Creating…" : "Create Private Room"}
+      </button>
+
+      {error && (
+        <p role="alert" className="mt-3 text-center text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
+
     </form>
   );
 }
