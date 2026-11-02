@@ -72,10 +72,11 @@ function calcCoords(idx: number, total: number): string {
   var y: number = 0;
 
   // sanitize the index
-  var sanitizedIdx: number = idx % total;
+  const sanitizedIdx = ((idx % total) + total) % total;
 
   x = sanitizedIdx % 10;
   y = Math.trunc(sanitizedIdx / 10);
+
   return `${-x * SPRITE_WIDTH}px ${-y * SPRITE_HEIGHT}px`;
 }
 

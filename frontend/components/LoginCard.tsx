@@ -18,9 +18,21 @@ export default function LoginCard() {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    axios.post(BACKEND_URL + "/play", { name, score: 0, avatar: { colorIdx: avatarIdx, eyesIdx, mouthIdx } })
+    axios.post(`http://${BACKEND_URL}` + "/play", { name, score: 0, avatar: { colorIdx: avatarIdx, eyesIdx, mouthIdx } })
       .then((response) => {
         console.log(response.data);
+
+        //handle websocket connection
+        const ws = new WebSocket(`ws://${BACKEND_URL}/ws`);
+        ws.onopen = () => {
+          ws.send("Hellow server!");
+        }
+        ws.onmessage = (event) => {
+          console.log("Received a message from the server: " + event.data);
+        }
+        ws.onclose = () => console.log('Disconnected');
+
+        return () => ws.close(); // Cleanup on unmount
       })
       .catch((err) => {
         if (err.response) {
