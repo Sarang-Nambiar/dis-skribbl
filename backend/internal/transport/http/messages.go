@@ -6,8 +6,8 @@ import (
 )
 
 type Message struct {
-	Type    string `json:"type"`
-	Payload json.RawMessage
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
 }
 
 type PlayerToken struct {
