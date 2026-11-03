@@ -1,15 +1,5 @@
+import AvatarSprite from "@/components/AvatarSprite";
 import type { Player } from "@/lib/room";
-
-const BADGE_COLORS = [
-  "#e21b1b",
-  "#f07c0d",
-  "#f5c60b",
-  "#49c60b",
-  "#0bc6a6",
-  "#1b7ae2",
-  "#6a1be2",
-  "#e21b9c",
-];
 
 type Props = {
   players: Player[];
@@ -31,20 +21,12 @@ export default function PlayerList({ players, maxPlayers, selfId }: Props) {
       </h2>
 
       <ul className="mt-2 flex max-h-72 flex-col gap-2 overflow-y-auto">
-        {players.map((player, i) => (
+        {players.map((player) => (
           <li
             key={player.id}
             className="flex items-center gap-3 rounded-lg border-2 border-black/10 bg-black/[0.03] px-3 py-2"
           >
-            {/* TODO: swap for <Avatar /> once it renders the sprite stack and
-                accepts a player's color/eyes/mouth indices. */}
-            <span
-              aria-hidden
-              className="flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-black text-sm font-bold text-white"
-              style={{ backgroundColor: BADGE_COLORS[i % BADGE_COLORS.length] }}
-            >
-              {player.name.charAt(0).toUpperCase()}
-            </span>
+            <AvatarSprite avatar={player.avatar} />
             <span className="min-w-0 flex-1 truncate font-semibold">
               {player.name}
               {player.id === selfId && (

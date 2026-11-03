@@ -13,9 +13,17 @@ export type RoomSettings = {
   customWordsOnly: boolean;
 };
 
+/** Sprite indices into the color / eyes / mouth atlases. */
+export type AvatarConfig = {
+  colorIdx: number;
+  eyesIdx: number;
+  mouthIdx: number;
+};
+
 export type Player = {
   id: string;
   name: string;
+  avatar: AvatarConfig;
   isHost: boolean;
 };
 

@@ -13,9 +13,16 @@
  *  once the server is the source of truth.
  */
 
-import { DEFAULT_SETTINGS, type Room, type RoomSettings } from "@/lib/room";
+import { DEFAULT_AVATAR, loadProfile } from "@/lib/profile";
+import {
+  DEFAULT_SETTINGS,
+  type AvatarConfig,
+  type Room,
+  type RoomSettings,
+} from "@/lib/room";
 
 const PLAYER_NAME_KEY = "stub:playerName";
+const PLAYER_AVATAR_KEY = "stub:playerAvatar";
 const SELF_ID = "self";
 
 function readStub(key: string): string | null {
@@ -39,15 +46,31 @@ function writeStub(key: string, value: string) {
  *
  * TODO(backend): e.g. `POST /rooms` with the player's name + avatar indices;
  * the server generates the room id and registers this player as the host.
- * Avatar selection isn't held in state yet — add it here once it is.
  */
 export async function createPrivateRoom(input: {
   name: string;
+  avatar: AvatarConfig;
 }): Promise<{ roomId: string }> {
   writeStub(PLAYER_NAME_KEY, input.name);
+  writeStub(PLAYER_AVATAR_KEY, JSON.stringify(input.avatar));
   // Fake id so the route has something to show; the server will own this.
   const roomId = Math.random().toString(36).slice(2, 10);
   return { roomId };
+}
+
+/**
+ * Join an existing room by its code.
+ *
+ * TODO(backend): e.g. `POST /rooms/:roomCode/join` with the player's name +
+ * avatar indices, then open the websocket for that room. Should reject for an
+ * unknown / full room so the caller can show an error.
+ */
+export async function joinRoom(input: {
+  roomCode: string;
+  name: string;
+  avatar: AvatarConfig;
+}): Promise<void> {
+  void input;
 }
 
 /**
@@ -58,6 +81,16 @@ export async function createPrivateRoom(input: {
  * Should reject / 404 for unknown rooms.
  */
 export async function getRoom(roomId: string): Promise<Room> {
+  // Prefer the avatar from the create call; fall back to the saved profile so
+  // opening a room link directly still shows the player's look.
+  let avatar: AvatarConfig = loadProfile()?.avatar ?? DEFAULT_AVATAR;
+  try {
+    const stored = readStub(PLAYER_AVATAR_KEY);
+    if (stored) avatar = JSON.parse(stored) as AvatarConfig;
+  } catch {
+    // Malformed stub — keep the fallback.
+  }
+
   return {
     roomId,
     selfId: SELF_ID,
@@ -67,6 +100,7 @@ export async function getRoom(roomId: string): Promise<Room> {
       {
         id: SELF_ID,
         name: readStub(PLAYER_NAME_KEY) ?? "Player",
+        avatar,
         isHost: true,
       },
     ],
