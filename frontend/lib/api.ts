@@ -20,10 +20,14 @@ import {
   type Room,
   type RoomSettings,
 } from "@/lib/room";
+import axios from "axios";
+import { RoomCreationMessage } from "./messages";
 
 const PLAYER_NAME_KEY = "stub:playerName";
 const PLAYER_AVATAR_KEY = "stub:playerAvatar";
+const PLAYER_TOKEN = "player:token"
 const SELF_ID = "self";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 function readStub(key: string): string | null {
   try {
@@ -51,11 +55,20 @@ export async function createPrivateRoom(input: {
   name: string;
   avatar: AvatarConfig;
 }): Promise<{ roomId: string }> {
-  writeStub(PLAYER_NAME_KEY, input.name);
-  writeStub(PLAYER_AVATAR_KEY, JSON.stringify(input.avatar));
-  // Fake id so the route has something to show; the server will own this.
-  const roomId = Math.random().toString(36).slice(2, 10);
-  return { roomId };
+  try {
+    const res = await axios.post<RoomCreationMessage>("http://" + BACKEND_URL + "/play", input);
+    const { player_id, room_id } = res.data;
+
+    console.log("Received room id from the server: " + room_id);
+
+    // Store the player token inside the session
+    sessionStorage.setItem(PLAYER_TOKEN, player_id);
+
+    return { roomId: room_id };
+  } catch (err) {
+    console.error("Something went wrong when trying to create a private room", err);
+    throw err;
+  }
 }
 
 /**

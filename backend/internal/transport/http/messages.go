@@ -13,3 +13,8 @@ type Message struct {
 type PlayerToken struct {
 	ID uuid.UUID `json:"id"`
 }
+
+type RoomCreationMessage struct {
+	Player_ID uuid.UUID `json:"player_id"`
+	Room_ID   string    `json:"room_id"`
+}

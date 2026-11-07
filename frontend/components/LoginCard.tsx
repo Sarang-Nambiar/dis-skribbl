@@ -15,7 +15,7 @@ import {
 
 const MAX_NAME_LENGTH = 16;
 
-const noopSubscribe = () => () => {};
+const noopSubscribe = () => () => { };
 
 /**
  * Waits for hydration, then mounts the form seeded from the saved profile.
@@ -101,6 +101,7 @@ function LoginForm({ initial }: { initial: Profile | null }) {
 				avatar: { colorIdx: avatarIdx, eyesIdx, mouthIdx },
 			});
 			router.push(`/room/${roomId}`);
+			console.log("Received room id from backend: " + roomId);
 		} catch {
 			setError("Couldn't create a room. Please try again.");
 			setCreating(false);
@@ -157,11 +158,10 @@ function LoginForm({ initial }: { initial: Profile | null }) {
 						aria-label="Room code"
 						autoComplete="off"
 						style={{ flexGrow: joinOpen ? 4 : 0 }}
-						className={`min-w-0 basis-0 overflow-hidden rounded-lg border-black/15 text-center text-lg outline-none transition-all duration-300 ease-out focus:border-black/40 motion-reduce:transition-none ${
-							joinOpen
-								? "mr-2 border-2 px-3 opacity-100"
-								: "mr-0 border-0 px-0 opacity-0"
-						}`}
+						className={`min-w-0 basis-0 overflow-hidden rounded-lg border-black/15 text-center text-lg outline-none transition-all duration-300 ease-out focus:border-black/40 motion-reduce:transition-none ${joinOpen
+							? "mr-2 border-2 px-3 opacity-100"
+							: "mr-0 border-0 px-0 opacity-0"
+							}`}
 					/>
 					<button
 						type={joinOpen ? "submit" : "button"}
@@ -178,20 +178,18 @@ function LoginForm({ initial }: { initial: Profile | null }) {
 						className="grid min-w-0 basis-0 place-items-center overflow-hidden rounded-lg bg-green-500 text-lg font-bold text-white shadow transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-green-500/40 disabled:shadow-none"
 					>
 						<span
-							className={`col-start-1 row-start-1 transition-all duration-200 motion-reduce:transition-none ${
-								joinOpen ? "scale-75 opacity-0" : "scale-100 opacity-100"
-							}`}
+							className={`col-start-1 row-start-1 transition-all duration-200 motion-reduce:transition-none ${joinOpen ? "scale-75 opacity-0" : "scale-100 opacity-100"
+								}`}
 						>
 							Play!
 						</span>
 						<svg
 							aria-hidden
 							viewBox="0 0 24 24"
-							className={`col-start-1 row-start-1 size-6 transition-all duration-300 motion-reduce:transition-none ${
-								joinOpen
-									? "translate-x-0 opacity-100"
-									: "-translate-x-3 opacity-0"
-							}`}
+							className={`col-start-1 row-start-1 size-6 transition-all duration-300 motion-reduce:transition-none ${joinOpen
+								? "translate-x-0 opacity-100"
+								: "-translate-x-3 opacity-0"
+								}`}
 							fill="none"
 							stroke="currentColor"
 							strokeWidth={3}

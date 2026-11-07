@@ -54,7 +54,7 @@ func (s *Server) handlePlay(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(PlayerToken{ID: playerID}); err != nil {
+	if err := json.NewEncoder(w).Encode(RoomCreationMessage{Player_ID: playerID, Room_ID: roomID}); err != nil {
 		log.Printf("failed to encode response: %v", err)
 	}
 }
